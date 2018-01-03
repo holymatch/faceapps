@@ -5,6 +5,10 @@ class FaceController < ApplicationController
                              body: { 'FaceData' => params[:FaceData] }.to_json,
                              headers: { 'Content-Type' => 'application/json',
                                         'Accept' => 'application/json' }
+    if response['ReturnCode'] == 200
+      @person = Person.find(response['Content']['name'])
+      response['Content'] = @person
+    end
     render json: response
   end
 end
