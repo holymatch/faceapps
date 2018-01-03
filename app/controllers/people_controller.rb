@@ -26,15 +26,18 @@ class PeopleController < ApplicationController
   # POST /people.json
   def create
     @person = Person.new(person_params)
-    if @person.save
-      response = HTTParty.post 'http://192.168.11.92:5002/face',
-                               body: { 'FaceData' => params[:facedata],
-                                       'Identify' => @person.id }.to_json,
-                               headers: { 'Content-Type' => 'application/json',
-                                          'Accept' => 'application/json' }
+    Person.transaction do
+      if @person.save
+        response = HTTParty.post 'http://192.168.11.92:5002/face',
+                                 body: { 'FaceData' => params[:facedata],
+                                         'Identify' => @person.id }.to_json,
+                                 headers: { 'Content-Type' => 'application/json',
+                                            'Accept' => 'application/json' }
 
-      logger.debug"response is  #{response}"
-      render json: response
+        logger.debug"response is  #{response}"
+        render json: response
+        raise ActiveRecord::Rollback, "Call tech support!" unless response['returncode'] == 200
+      end
     end
 
 =begin
